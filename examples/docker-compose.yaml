@@ -1,53 +1,76 @@
 version: "3.9"
+
 services:
   koha:
-    image: teogramm/koha:24.11
+    image: ghcr.io/alexhaio/koha:25.05
+    container_name: koha
+    restart: always
     ports:
-      - 8080:8080
-      - 8081:8081
-    networks:
-      - koha
+      - "8080:8080"
+      - "8081:8081"
     cap_add:
       - DAC_READ_SEARCH
       - SYS_NICE
     environment:
       MYSQL_SERVER: db
-      MYSQL_USER: koha_teolib
-      MYSQL_PASSWORD: example
-      DB_NAME: koha_teolib
+      DB_NAME: koha_default
+      MYSQL_USER: koha_default
+      MYSQL_PASSWORD: secret_db_pass
       MEMCACHED_SERVERS: memcached:11211
       MB_HOST: rabbitmq
+      MB_PORT: 61613
+      MB_USER: koha_rabbit
+      MB_PASS: secret_rabbit_pass
+      KOHA_LANGS: de-DE
+    volumes:
+      - koha-data:/var/lib/koha
     depends_on:
-      - db
-      - rabbitmq
-      - memcached
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      memcached:
+        condition: service_started
 
   rabbitmq:
-      image: docker.io/rabbitmq:3
-      volumes:
-        - ./rabbitmq_plugins:/etc/rabbitmq/enabled_plugins
-      networks:
-        - koha
+    image: docker.io/rabbitmq:3-management-alpine
+    container_name: koha-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: koha_rabbit
+      RABBITMQ_DEFAULT_PASS: secret_rabbit_pass
+    volumes:
+      - ./rabbitmq_plugins:/etc/rabbitmq/enabled_plugins
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db:
     image: docker.io/mariadb:11
+    container_name: koha-db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: secret_root_pass
+      MARIADB_DATABASE: koha_default
+      MARIADB_USER: koha_default
+      MARIADB_PASSWORD: secret_db_pass
     volumes:
       - mariadb-koha:/var/lib/mysql
-    environment:
-      MARIADB_ROOT_PASSWORD: example
-      MARIADB_DATABASE: koha_teolib
-      MARIADB_USER: koha_teolib
-      MARIADB_PASSWORD: example
-    networks:
-      - koha
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   memcached:
-    image: docker.io/memcached
-    networks:
-      - koha
+    image: docker.io/memcached:alpine
+    container_name: koha-memcached
+    restart: always
 
 volumes:
-    mariadb-koha:
-
-networks:
-    koha:
+  koha-data:
+  mariadb-koha:

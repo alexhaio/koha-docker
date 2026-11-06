@@ -4,7 +4,7 @@ Modern, hardened Multi-Arch (`linux/amd64`, `linux/arm64`) Docker container for 
 
 ## Available Tags & Versions
 
-All images are published to the GitHub Container Registry (`ghcr.io/mystryx1337/koha`):
+All images are published to the GitHub Container Registry (`ghcr.io/alexhaio/koha`):
 
 | Tag | Koha Release Track | Description | Multi-Arch |
 | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ version: "3.9"
 
 services:
   koha:
-    image: ghcr.io/mystryx1337/koha:25.05
+    image: ghcr.io/alexhaio/koha:25.05
     container_name: koha
     restart: always
     ports:

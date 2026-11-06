@@ -5,7 +5,7 @@ ARG S6_OVERLAY_VERSION=3.2.0.2
 ARG KOHA_VERSION=stable
 ARG TARGETARCH
 
-LABEL org.opencontainers.image.source=https://github.com/mystryx1337/koha-docker
+LABEL org.opencontainers.image.source=https://github.com/alexhaio/koha-docker
 LABEL org.opencontainers.image.description="Modern Multi-Arch Koha Docker Container with s6-overlay"
 
 RUN apt-get update \
